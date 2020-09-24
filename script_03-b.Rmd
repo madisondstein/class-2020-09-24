@@ -46,13 +46,70 @@ sep_new <-
 
 ### Scene 1
 
+```{r s1}
+
+sep_old <- 
+  read_excel("downloaded_data/class_enrollment_summary_by_term_9-1-2020.xlsx", 
+             skip = 3) %>% 
+  clean_names() %>% 
+  filter(! is.na(course_title)) %>% 
+  select( -instructor_full_name, -course_section_code, -(grad:total)) %>%
+  rename_with(~ str_replace(.x, "course_", "")) %>% 
+  group_by(id, title, name, department) %>% 
+  summarize(u_grad = sum(u_grad), .groups = "drop") %>% 
+  filter(u_grad > 10)
+
+
+sep_new <- 
+  read_excel("downloaded_data//class_enrollment_summary_by_term_9-22-2020.xlsx", 
+             skip = 3) %>% 
+  clean_names() %>% 
+  filter(! is.na(course_title)) %>% 
+  select( -instructor_full_name, -course_section_code, -(grad:total)) %>%
+  rename_with(~ str_replace(.x, "course_", "")) %>% 
+  group_by(id, title, name, department) %>% 
+  summarize(u_grad = sum(u_grad), .groups = "drop") %>% 
+  filter(u_grad > 10)
+
+sep <- inner_join(sep_old, sep_new, by = "id") %>%
+  mutate(diff = u_grad.y - u_grad.x) %>%
+  arrange(diff) 
+
+
+```
+
 **Prompt:** Which classes had the biggest increases and decreases in undergraduate enrollments between September 1 and September 22? Obviously, you will need to join the two datasets which I have created for you above.
 
 a) Make a table using **gt** which shows the five courses with the biggest increase. Use the [How to make a table](https://davidkane9.github.io/PPBDS/tools.html#how-to-make-a-table) section of *The Primer*.
 
+```{r}
+
+sep %>%
+  slice(412:416) %>%
+  gt()
+
+```
+
 b) Make a table using **gt** which shows the five courses with the biggest decrease.
 
+```{r}
+
+sep %>%
+  slice(1:5) %>%
+  gt()
+
+```
+
 c) Make a nice looking graphic which shows these 10 courses.
+
+```{r}
+
+sep %>%
+  slice(1:5, 412:416) %>%
+  ggplot(aes())
+
+```
+
 
 d) Write down some thoughts about what might explain these increases and decreases. Or is it all just random? How would we know?
 
